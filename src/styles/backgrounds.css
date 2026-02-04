@@ -1,0 +1,36 @@
+/* Background variants and animations for BackgroundEffects component */
+.bg-variant-subtle {
+  --bg-opacity: 0.9;
+}
+.bg-variant-bold {
+  --bg-opacity: 1;
+}
+
+/* Hide motion-heavy elements when reduced-motion is enabled */
+@media (prefers-reduced-motion: reduce) {
+  .reduced-motion-hide { display: none !important; }
+}
+
+.reduced-motion-hide circle:nth-child(1) {
+  animation: blobA 18s ease-in-out infinite;
+}
+.reduced-motion-hide circle:nth-child(2) {
+  animation: blobB 22s ease-in-out infinite;
+}
+
+@keyframes blobA {
+  0% { transform: translateY(0) translateX(0) scale(1); }
+  50% { transform: translateY(-18px) translateX(12px) scale(1.02); }
+  100% { transform: translateY(0) translateX(0) scale(1); }
+}
+@keyframes blobB {
+  0% { transform: translateY(0) translateX(0) scale(1); }
+  50% { transform: translateY(22px) translateX(-18px) scale(0.98); }
+  100% { transform: translateY(0) translateX(0) scale(1); }
+}
+
+/* grid overlay subtle styling */
+.bg-grid-overlay {
+  opacity: 0.05;
+  mix-blend-mode: screen;
+}

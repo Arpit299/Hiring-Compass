@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fallback styles for critical rendering path */
+body {
+  background-color: #0c0c0e !important;
+  color: #ffffff !important;
+  margin: 0;
+  padding: 0;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+@layer base {
+  * {
+    @apply antialiased;
+  }
+
+  html {
+    @apply scroll-smooth overflow-y-scroll;
+  }
+
+  body {
+    @apply bg-midnight-900 text-white m-0 p-0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white/[0.02] backdrop-blur-md border border-white/[0.08] rounded-xl;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-midnight-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-midnight-700 rounded-full hover:bg-midnight-600;
+  }
+}
+
+@layer utilities {
+  * {
+    @apply transition-colors duration-200;
+  }
+
+  .font-jakarta {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-in-out;
+  }
+}
