@@ -8,6 +8,7 @@ import { Trash2, DownloadCloud, Upload, Search } from 'lucide-react';
 import type { HistoryItem } from '../hooks/useResultHistory';
 import LazyRechartsScoreChart from './LazyRechartsScoreChart';
 import LazyTrendChart from './LazyTrendChart';
+import '../styles/components.css';
 
 interface HistoryPanelProps {
   history: HistoryItem[];
@@ -122,6 +123,8 @@ export const HistoryPanel = ({
             accept=".pdf"
             onChange={handleFileSelected}
             className="hidden"
+            title="Select PDF file to import"
+            aria-label="PDF import"
           />
         </div>
       </div>
@@ -140,16 +143,16 @@ export const HistoryPanel = ({
           <div className="relative bg-midnight-800 rounded-lg p-6 w-[min(90%,720px)] z-60">
             <h3 className="text-lg font-semibold mb-2">Confirm Imported PDF</h3>
             <div className="mb-3">
-              <label className="text-sm text-gray-400">Job Role</label>
-              <input value={importJobRole} onChange={(e) => setImportJobRole(e.target.value)} className="w-full mt-1 p-2 rounded bg-midnight-700/50" />
+              <label htmlFor="import-job-role" className="text-sm text-gray-400">Job Role</label>
+              <input id="import-job-role" title="Job role for imported analysis" value={importJobRole} onChange={(e) => setImportJobRole(e.target.value)} className="w-full mt-1 p-2 rounded bg-midnight-700/50" placeholder="e.g., Senior Developer" />
             </div>
             <div className="mb-3">
-              <label className="text-sm text-gray-400">Company / Source</label>
-              <input value={importCompany} onChange={(e) => setImportCompany(e.target.value)} className="w-full mt-1 p-2 rounded bg-midnight-700/50" />
+              <label htmlFor="import-company" className="text-sm text-gray-400">Company / Source</label>
+              <input id="import-company" title="Company or source name" value={importCompany} onChange={(e) => setImportCompany(e.target.value)} className="w-full mt-1 p-2 rounded bg-midnight-700/50" placeholder="e.g., Acme Corp" />
             </div>
             <div className="mb-4">
-              <label className="text-sm text-gray-400">Preview</label>
-              <textarea value={importPreviewText} readOnly rows={6} className="w-full mt-1 p-2 rounded bg-midnight-700/40 text-sm" />
+              <label htmlFor="import-preview" className="text-sm text-gray-400">Preview</label>
+              <textarea id="import-preview" title="PDF preview" value={importPreviewText} readOnly rows={6} className="w-full mt-1 p-2 rounded bg-midnight-700/40 text-sm" placeholder="Preview of extracted text from PDF" />
             </div>
             <div className="flex justify-end gap-2">
               <button onClick={() => setShowImportModal(false)} className="px-4 py-2 rounded bg-gray-700/40">Cancel</button>
@@ -206,6 +209,8 @@ export const HistoryPanel = ({
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as 'recent' | 'score')}
             className="px-4 py-2 bg-midnight-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:border-cyan-400/50"
+            title="Sort history items"
+            aria-label="Sort by most recent or highest score"
           >
             <option value="recent">Most Recent</option>
             <option value="score">Highest Score</option>

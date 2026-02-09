@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, AlertCircle, CheckCircle, Zap } from 'lucide-react';
 import { useMemo } from 'react';
+import '../styles/components.css';
 
 interface ATSScoreGaugeEnhancedProps {
   score: number; // 0-100

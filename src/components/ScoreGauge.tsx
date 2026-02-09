@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import '../styles/components.css';
 
 interface ScoreGaugeProps {
   score: number; // 0-100
@@ -109,19 +110,19 @@ export default function ScoreGauge({ score, confidence }: ScoreGaugeProps) {
           <div className="text-xl font-bold text-white">{Math.round(validScore)}%</div>
           <div className="flex items-center gap-3 text-xs text-gray-300">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-sm" style={{ background: '#ef4444' }} />
+              <span className="color-indicator color-critical" />
               <span>0-49</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-sm" style={{ background: '#f59e0b' }} />
+              <span className="color-indicator color-warning" />
               <span>50-64</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-sm" style={{ background: '#3b82f6' }} />
+              <span className="color-indicator color-good" />
               <span>65-79</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-sm" style={{ background: '#10b981' }} />
+              <span className="color-indicator color-excellent" />
               <span>80-100</span>
             </div>
           </div>

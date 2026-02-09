@@ -1,6 +1,7 @@
 import React from 'react';
 import { Send, AlertCircle, Upload, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
+import '../styles/components.css';
 
 interface ResumeInputFormProps {
   onSubmit: (data: {
@@ -128,6 +129,8 @@ export default function ResumeInputForm({ onSubmit, loading }: ResumeInputFormPr
             }}
             disabled={loading}
             className="hidden"
+            title="Select resume file (PDF or DOCX)"
+            aria-label="Resume file upload"
           />
 
           <motion.div
@@ -182,6 +185,8 @@ export default function ResumeInputForm({ onSubmit, loading }: ResumeInputFormPr
             onClick={() => fileInputRef.current?.click()}
             disabled={loading}
             className="absolute inset-0 rounded-2xl opacity-0"
+            title="Click to upload resume file"
+            aria-label="Upload resume"
           />
 
           {errors.resumeFile && (

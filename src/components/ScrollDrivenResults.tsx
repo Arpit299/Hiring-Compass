@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import type { AnalysisResult } from '../types/analysis';
 import { CheckCircle, AlertCircle, TrendingUp, Zap } from 'lucide-react';
+import '../styles/components.css';
 
 interface ScrollDrivenResultsProps {
   result: AnalysisResult;

@@ -5,6 +5,7 @@ import ImprovementPlanComponent from './ImprovementPlan';
 import { TrendingUp, MessageSquare, BarChart3, DollarSign, Building2 } from 'lucide-react';
 import { AlertCircle, CheckCircle, Copy, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
+import '../styles/components.css';
 
 interface AnalysisDashboardProps {
   result: AnalysisResult;
@@ -158,7 +159,7 @@ ${result.recommendedActions.map((a, i) => `${i + 1}. ${a}`).join('\n')}`;
                 transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
                 className="flex gap-3 text-sm"
               >
-                <span className="text-emerald-400 font-bold mt-0.5">•</span>
+                <span className="text-emerald-400 font-bold mt-0.5" aria-hidden="true">•</span>
                 <span>{strength}</span>
               </motion.li>
             ))}
@@ -184,7 +185,7 @@ ${result.recommendedActions.map((a, i) => `${i + 1}. ${a}`).join('\n')}`;
                 transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
                 className="flex gap-3 text-sm"
               >
-                <span className="text-amber-400 font-bold mt-0.5">•</span>
+                <span className="text-amber-400 font-bold mt-0.5" aria-hidden="true">•</span>
                 <span>{gap}</span>
               </motion.li>
             ))}
@@ -226,7 +227,7 @@ ${result.recommendedActions.map((a, i) => `${i + 1}. ${a}`).join('\n')}`;
               transition={{ delay: 0.7 + idx * 0.1, duration: 0.5 }}
               className="flex gap-3 text-sm"
             >
-              <span className="text-blue-400 font-bold min-w-6">{idx + 1}.</span>
+              <span className="text-blue-400 font-bold min-w-6" aria-hidden="true">{idx + 1}.</span>
               <span>{action}</span>
             </motion.li>
           ))}

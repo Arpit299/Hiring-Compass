@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
+import '../styles/components.css';
 
 interface Props {
   points: { timestamp: number; score?: number }[];
@@ -21,17 +22,17 @@ const CustomTrendTooltip = ({ active, payload }: any) => {
       padding: '0.5rem 0.75rem',
       boxShadow: `0 4px 12px rgba(0,0,0,0.6)`,
     }}>
-      <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.25rem' }}>
+      <div className="tooltip-label">
         {p.payload.time}
       </div>
-      <div style={{ fontSize: '0.875rem', fontWeight: '600', color }}>
+      <div className="tooltip-title" style={{ color }}>
         ATS Score: {score}%
       </div>
     </div>
   );
 };
 
-export const TrendChart: React.FC<Props> = ({ points, height = 100 }) => {
+export const TrendChart: React.FC<Omit<Props, 'height'>> = ({ points }) => {
   if (!points || points.length === 0) return null;
   const data = points
     .filter((p) => typeof p.score === 'number')
@@ -40,7 +41,7 @@ export const TrendChart: React.FC<Props> = ({ points, height = 100 }) => {
   if (data.length === 0) return null;
 
   return (
-    <div style={{ width: '100%', height }}>
+    <div className="chart-container-small">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 12, right: 16, left: 4, bottom: 8 }}>
           <XAxis dataKey="time" tick={{ fill: '#6b7280', fontSize: 12 }} />
