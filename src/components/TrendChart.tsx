@@ -9,23 +9,29 @@ interface Props {
 
 const fmt = (t: number) => new Date(t).toLocaleDateString();
 
-const CustomTrendTooltip = ({ active, payload }: any) => {
+interface TrendTooltipEntry {
+  value: number;
+  payload: { time: string };
+}
+
+const CustomTrendTooltip = ({ active, payload }: { active?: boolean; payload?: TrendTooltipEntry[] }) => {
   if (!active || !payload || !payload.length) return null;
   const p = payload[0];
   const score = p.value;
-  const color = score >= 80 ? '#10b981' : score >= 60 ? '#0ea5e9' : score >= 40 ? '#f59e0b' : '#ef4444';
+  const toneClass =
+    score >= 80
+      ? 'tooltip-text-emerald tooltip-border-emerald'
+      : score >= 60
+        ? 'tooltip-text-sky tooltip-border-sky'
+        : score >= 40
+          ? 'tooltip-text-amber tooltip-border-amber'
+          : 'tooltip-text-red tooltip-border-red';
   return (
-    <div style={{
-      backgroundColor: '#1f2937',
-      border: `1px solid ${color}40`,
-      borderRadius: '0.5rem',
-      padding: '0.5rem 0.75rem',
-      boxShadow: `0 4px 12px rgba(0,0,0,0.6)`,
-    }}>
+    <div className={`tooltip-surface ${toneClass}`}>
       <div className="tooltip-label">
         {p.payload.time}
       </div>
-      <div className="tooltip-title" style={{ color }}>
+      <div className="tooltip-title">
         ATS Score: {score}%
       </div>
     </div>
@@ -35,8 +41,8 @@ const CustomTrendTooltip = ({ active, payload }: any) => {
 export const TrendChart: React.FC<Omit<Props, 'height'>> = ({ points }) => {
   if (!points || points.length === 0) return null;
   const data = points
-    .filter((p) => typeof p.score === 'number')
-    .map((p) => ({ time: fmt(p.timestamp), score: Math.round(p.score as number) }));
+    .filter((p) => typeof p.score === 'number' && Number.isFinite(p.score) && Number.isFinite(p.timestamp))
+    .map((p) => ({ time: fmt(p.timestamp), score: Math.round(Number(p.score)) }));
 
   if (data.length === 0) return null;
 

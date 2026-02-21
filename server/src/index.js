@@ -4,16 +4,88 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import crypto from 'crypto';
 import { analyzeResumeLocal, analyzeResumeLocalWithMarketPulse } from './localAnalysis.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const IS_PROD = NODE_ENV === 'production';
+const ENFORCE_HTTPS = process.env.ENFORCE_HTTPS === 'true';
+const API_AUTH_TOKEN = process.env.API_AUTH_TOKEN || '';
+const MAX_RESUME_TEXT_CHARS = Number(process.env.MAX_RESUME_TEXT_CHARS || 50000);
+const ANALYZE_TIMEOUT_MS = Number(process.env.ANALYZE_TIMEOUT_MS || 25000);
+const ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.disable('x-powered-by');
+app.set('trust proxy', process.env.TRUST_PROXY === 'true');
 
 // Middleware
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
+
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  next();
+});
+
+if (ENFORCE_HTTPS) {
+  app.use((req, res, next) => {
+    const proto = req.headers['x-forwarded-proto'];
+    if (IS_PROD && proto !== 'https') {
+      return res.status(403).json({ success: false, error: 'HTTPS is required' });
+    }
+    next();
+  });
+}
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (ALLOWED_ORIGINS.length === 0) return callback(null, true);
+      if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+      return callback(new Error('Origin not allowed by CORS policy'));
+    },
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'X-API-Token', 'X-Request-Id'],
+    credentials: false,
+    maxAge: 600,
+  })
+);
+
+app.use(express.json({ limit: '1mb', strict: true }));
+
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.GLOBAL_RATE_LIMIT_MAX || 300),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many requests, please try again later.' },
+});
+
+const analyzeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.ANALYZE_RATE_LIMIT_MAX || 40),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Rate limit exceeded for analysis endpoint.' },
+});
+
+app.use(globalLimiter);
 
 // Multer (memory) for file uploads with error handling
 const upload = multer({
@@ -39,16 +111,57 @@ const upload = multer({
 // Request logging middleware
 app.use((req, res, next) => {
   const startTime = Date.now();
-  const original_res_end = res.end;
+  const originalResEnd = res.end;
+  const requestId = req.headers['x-request-id'] || crypto.randomUUID();
+  req.requestId = String(requestId);
+  res.setHeader('X-Request-Id', String(requestId));
   
   res.end = function() {
     const duration = Date.now() - startTime;
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
-    original_res_end.apply(res, arguments);
+    console.log(`[${new Date().toISOString()}] [${req.requestId}] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
+    originalResEnd.apply(res, arguments);
   };
   
   next();
 });
+
+function secureCompare(a, b) {
+  try {
+    const aBuf = Buffer.from(String(a || ''), 'utf8');
+    const bBuf = Buffer.from(String(b || ''), 'utf8');
+    if (aBuf.length !== bBuf.length) return false;
+    return crypto.timingSafeEqual(aBuf, bBuf);
+  } catch {
+    return false;
+  }
+}
+
+function requireApiToken(req, res, next) {
+  if (!API_AUTH_TOKEN) return next();
+
+  const provided = req.headers['x-api-token'];
+  if (!provided || typeof provided !== 'string') {
+    return res.status(401).json({ success: false, error: 'Missing API token', requestId: req.requestId });
+  }
+
+  if (!secureCompare(provided, API_AUTH_TOKEN)) {
+    return res.status(403).json({ success: false, error: 'Invalid API token', requestId: req.requestId });
+  }
+
+  return next();
+}
+
+function sanitizeText(input, maxLength = 200) {
+  if (typeof input !== 'string') return '';
+  return input.replace(/[\u0000-\u001F\u007F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, maxLength);
+}
+
+function isValidEntityName(value, min, max) {
+  if (!value || typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  if (trimmed.length < min || trimmed.length > max) return false;
+  return /^[\p{L}\p{N} .,'()&\-_/+]+$/u.test(trimmed);
+}
 
 // Health check
 app.get('/health', (req, res) => {
@@ -97,15 +210,18 @@ async function parseResumeBuffer(file) {
 }
 
 // Main analysis endpoint - accepts either multipart/form-data with `resumeFile` or JSON with `resumeText`
-app.post('/api/analyze', upload.single('resumeFile'), async (req, res) => {
+app.post('/api/analyze', analyzeLimiter, requireApiToken, upload.single('resumeFile'), async (req, res) => {
   const startTime = Date.now();
-  const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const requestId = req.requestId || `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
   
   try {
-    const { jobRole, company } = req.body;
+    const rawJobRole = req.body?.jobRole;
+    const rawCompany = req.body?.company;
+    const jobRole = sanitizeText(rawJobRole, 120);
+    const company = sanitizeText(rawCompany, 120);
 
     // Validate jobRole
-    if (!jobRole || typeof jobRole !== 'string' || jobRole.trim().length < 3) {
+    if (!isValidEntityName(jobRole, 3, 120)) {
       console.warn(`[${requestId}] Invalid jobRole: ${jobRole}`);
       return res.status(400).json({ 
         success: false, 
@@ -115,7 +231,7 @@ app.post('/api/analyze', upload.single('resumeFile'), async (req, res) => {
     }
 
     // Validate company
-    if (!company || typeof company !== 'string' || company.trim().length < 2) {
+    if (!isValidEntityName(company, 2, 120)) {
       console.warn(`[${requestId}] Invalid company: ${company}`);
       return res.status(400).json({ 
         success: false, 
@@ -149,7 +265,7 @@ app.post('/api/analyze', upload.single('resumeFile'), async (req, res) => {
         });
       }
     } else if (req.body.resumeText && typeof req.body.resumeText === 'string') {
-      resumeText = req.body.resumeText.trim();
+      resumeText = sanitizeText(req.body.resumeText, MAX_RESUME_TEXT_CHARS);
       if (resumeText.length < 50) {
         console.warn(`[${requestId}] Resume text too short: ${resumeText.length} chars`);
         return res.status(400).json({ 
@@ -167,9 +283,22 @@ app.post('/api/analyze', upload.single('resumeFile'), async (req, res) => {
       });
     }
 
+    if (resumeText.length > MAX_RESUME_TEXT_CHARS) {
+      return res.status(413).json({
+        success: false,
+        error: `Resume content exceeds maximum allowed length (${MAX_RESUME_TEXT_CHARS} chars).`,
+        requestId,
+      });
+    }
+
     // Perform analysis
     console.log(`[${requestId}] Starting analysis for ${jobRole} at ${company}`);
-    const analysisResult = await analyzeResumeLocalWithMarketPulse(resumeText, jobRole, company);
+    const analysisResult = await Promise.race([
+      analyzeResumeLocalWithMarketPulse(resumeText, jobRole, company),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Analysis timeout exceeded')), ANALYZE_TIMEOUT_MS)
+      ),
+    ]);
     
     const duration = Date.now() - startTime;
     console.log(`[${requestId}] Analysis complete (${duration}ms)`);
@@ -183,11 +312,17 @@ app.post('/api/analyze', upload.single('resumeFile'), async (req, res) => {
         timestamp: new Date().toISOString()
       }
     });
+
+    if (req.file?.buffer) {
+      req.file.buffer.fill(0);
+    }
   } catch (error) {
     const duration = Date.now() - startTime;
     const message = error && error.message ? error.message : 'Failed to analyze resume';
     console.error(`[${requestId}] Analysis error after ${duration}ms: ${message}`);
-    console.error(error.stack);
+    if (!IS_PROD && error?.stack) {
+      console.error(error.stack);
+    }
     
     let statusCode = 500;
     let errorMsg = message;
@@ -204,7 +339,7 @@ app.post('/api/analyze', upload.single('resumeFile'), async (req, res) => {
     
     res.status(statusCode).json({ 
       success: false, 
-      error: errorMsg,
+      error: IS_PROD && statusCode >= 500 ? 'Internal server error' : errorMsg,
       requestId,
       processingTimeMs: duration
     });
@@ -251,13 +386,16 @@ app.use((err, req, res, next) => {
   const message = err.message || 'Internal server error';
   
   console.error(`[ERROR] ${new Date().toISOString()} - Status: ${statusCode} - ${message}`);
-  console.error(err.stack);
+  if (!IS_PROD && err?.stack) {
+    console.error(err.stack);
+  }
   
   res.status(statusCode).json({ 
     success: false, 
-    error: message,
+    error: IS_PROD && statusCode >= 500 ? 'Internal server error' : message,
     timestamp: new Date().toISOString(),
-    path: req.path
+    path: req.path,
+    requestId: req.requestId
   });
 });
 

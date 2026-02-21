@@ -152,16 +152,17 @@ ${result.recommendedActions.map((a, i) => `${i + 1}. ${a}`).join('\n')}`;
           </div>
           <ul className="space-y-3">
             {result.keyStrengths.map((strength, idx) => (
-              <motion.li
-                key={strength}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
-                className="flex gap-3 text-sm"
-              >
-                <span className="text-emerald-400 font-bold mt-0.5" aria-hidden="true">•</span>
-                <span>{strength}</span>
-              </motion.li>
+              <li key={strength} className="list-none">
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
+                  className="flex gap-3 text-sm"
+                >
+                  <span className="text-emerald-400 font-bold mt-0.5" aria-hidden="true">•</span>
+                  <span>{strength}</span>
+                </motion.div>
+              </li>
             ))}
           </ul>
         </motion.div>
@@ -178,16 +179,17 @@ ${result.recommendedActions.map((a, i) => `${i + 1}. ${a}`).join('\n')}`;
           </div>
           <ul className="space-y-3">
             {result.keyGaps.map((gap, idx) => (
-              <motion.li
-                key={gap}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
-                className="flex gap-3 text-sm"
-              >
-                <span className="text-amber-400 font-bold mt-0.5" aria-hidden="true">•</span>
-                <span>{gap}</span>
-              </motion.li>
+              <li key={gap} className="list-none">
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
+                  className="flex gap-3 text-sm"
+                >
+                  <span className="text-amber-400 font-bold mt-0.5" aria-hidden="true">•</span>
+                  <span>{gap}</span>
+                </motion.div>
+              </li>
             ))}
           </ul>
         </motion.div>
@@ -220,16 +222,17 @@ ${result.recommendedActions.map((a, i) => `${i + 1}. ${a}`).join('\n')}`;
         </div>
         <ol className="space-y-3">
           {result.recommendedActions.map((action, idx) => (
-            <motion.li
-              key={action}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7 + idx * 0.1, duration: 0.5 }}
-              className="flex gap-3 text-sm"
-            >
-              <span className="text-blue-400 font-bold min-w-6" aria-hidden="true">{idx + 1}.</span>
-              <span>{action}</span>
-            </motion.li>
+            <li key={action} className="list-none">
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.7 + idx * 0.1, duration: 0.5 }}
+                className="flex gap-3 text-sm"
+              >
+                <span className="text-blue-400 font-bold min-w-6" aria-hidden="true">{idx + 1}.</span>
+                <span>{action}</span>
+              </motion.div>
+            </li>
           ))}
         </ol>
       </motion.div>

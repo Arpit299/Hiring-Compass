@@ -4,12 +4,16 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "audit": "npm audit --audit-level=low",
+    "audit:fix:dry": "npm audit fix --dry-run"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0",
     "openai": "^4.56.0",
     "multer": "^1.4.5-lts.1",
     "pdf-parse": "^1.1.1",
@@ -18,5 +22,10 @@
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/express": "^4.17.21"
-  }
+  },
+  "engines": {
+    "node": ">=20.11.0",
+    "npm": ">=10.0.0"
+  },
+  "packageManager": "npm@10.9.0"
 }

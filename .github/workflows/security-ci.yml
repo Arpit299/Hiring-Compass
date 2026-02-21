@@ -1,0 +1,54 @@
+name: Security CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+
+  security-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install root deps (no lifecycle scripts)
+        run: npm ci --ignore-scripts
+
+      - name: Install server deps (no lifecycle scripts)
+        run: npm ci --ignore-scripts --prefix server
+
+      - name: Audit root dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+
+      - name: Audit server dependencies
+        run: npm audit --audit-level=low --prefix server
+
+      - name: Build frontend
+        run: npm run build

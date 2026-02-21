@@ -1,8 +1,8 @@
 import type { AnalysisResult, ResumeInput } from '../types/analysis';
 import { validateAnalysisSchema } from '../schemas/analysis';
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:3001';
+const SERVER_API_TOKEN = import.meta.env.VITE_SERVER_API_TOKEN;
 
 interface ApiAnalysisRequest {
   resumeText: string;
@@ -34,7 +34,7 @@ export async function analyzeResumeViaAPI(input: ResumeInput): Promise<AnalysisR
       response = await fetch(`${API_ENDPOINT}/api/analyze`, {
         method: 'POST',
         headers: {
-          ...(OPENAI_API_KEY && { 'X-API-Key': OPENAI_API_KEY }),
+          ...(SERVER_API_TOKEN && { 'X-API-Token': SERVER_API_TOKEN }),
         },
         body: form,
       });
@@ -43,7 +43,7 @@ export async function analyzeResumeViaAPI(input: ResumeInput): Promise<AnalysisR
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(OPENAI_API_KEY && { 'X-API-Key': OPENAI_API_KEY }),
+          ...(SERVER_API_TOKEN && { 'X-API-Token': SERVER_API_TOKEN }),
         },
         body: JSON.stringify({ resumeText: input.resumeText ?? '', jobRole: input.jobRole, company: input.company } as ApiAnalysisRequest),
       });

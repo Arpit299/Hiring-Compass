@@ -5,13 +5,16 @@ import '../styles/components.css';
 const LazyComp = React.lazy(() => import('./TrendChart'));
 
 const Spinner: React.FC = () => (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  <div className="spinner-container" style={{ height: '80px' }}>
+  <div className="spinner-container spinner-h-80">
     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400" />
   </div>
 );
 
-const LazyTrendChart: React.FC<any> = (props) => {
+interface LazyTrendChartProps {
+  points: Array<{ timestamp: number; score?: number }>;
+}
+
+const LazyTrendChart: React.FC<LazyTrendChartProps> = (props) => {
   return (
     <ErrorBoundary>
       <Suspense fallback={<Spinner />}>

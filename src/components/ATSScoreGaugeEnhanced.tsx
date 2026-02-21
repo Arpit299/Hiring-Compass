@@ -71,6 +71,28 @@ export default function ATSScoreGaugeEnhanced({
   const circumference = 2 * Math.PI * 48;
   const strokeOffset = circumference - (metrics.adjustedScore / 100) * circumference;
 
+  const interpretationTextClass =
+    metrics.interpretation.level === 'Excellent'
+      ? 'gauge-text-emerald'
+      : metrics.interpretation.level === 'Strong'
+        ? 'gauge-text-sky'
+        : metrics.interpretation.level === 'Moderate'
+          ? 'gauge-text-amber'
+          : metrics.interpretation.level === 'Fair'
+            ? 'gauge-text-orange'
+            : 'gauge-text-red';
+
+  const interpretationGlowClass =
+    metrics.interpretation.level === 'Excellent'
+      ? 'gauge-glow-emerald'
+      : metrics.interpretation.level === 'Strong'
+        ? 'gauge-glow-sky'
+        : metrics.interpretation.level === 'Moderate'
+          ? 'gauge-glow-amber'
+          : metrics.interpretation.level === 'Fair'
+            ? 'gauge-glow-orange'
+            : 'gauge-glow-red';
+
   // Gauge segments (threshold ranges with colors)
   const segments = [
     { range: 40, color: '#ef4444', label: 'Poor' },
@@ -90,10 +112,7 @@ export default function ATSScoreGaugeEnhanced({
       {/* Main Gauge Container */}
       <div className="relative w-72 h-72 mb-6">
         {/* Glow backdrop */}
-        <div
-          className="absolute inset-0 rounded-full blur-3xl opacity-20"
-          style={{ background: metrics.interpretation.color }}
-        />
+        <div className={`absolute inset-0 rounded-full blur-3xl opacity-20 ${interpretationGlowClass}`} />
 
         <svg className="w-full h-full drop-shadow-2xl" viewBox="0 0 120 120">
           <defs>
@@ -268,10 +287,7 @@ export default function ATSScoreGaugeEnhanced({
           ) : (
             <TrendingUp className="w-5 h-5 text-amber-400" />
           )}
-          <span
-            className="text-lg font-bold"
-            style={{ color: metrics.interpretation.color }}
-          >
+          <span className={`text-lg font-bold ${interpretationTextClass}`}>
             {metrics.interpretation.level} Match
           </span>
         </div>
@@ -353,14 +369,10 @@ export default function ATSScoreGaugeEnhanced({
             </h3>
             <div className="space-y-2">
               {breakdown.map((item, idx) => {
-                const catColor =
-                  item.score >= 80
-                    ? '#10b981'
-                    : item.score >= 65
-                      ? '#0ea5e9'
-                      : item.score >= 50
-                        ? '#f59e0b'
-                        : '#ef4444';
+                const catColorClass =
+                  item.score >= 80 ? 'gauge-text-emerald' : item.score >= 65 ? 'gauge-text-sky' : item.score >= 50 ? 'gauge-text-amber' : 'gauge-text-red';
+                const catBarClass =
+                  item.score >= 80 ? 'bar-emerald' : item.score >= 65 ? 'bar-sky' : item.score >= 50 ? 'bar-amber' : 'bar-red';
 
                 return (
                   <motion.div
@@ -372,16 +384,15 @@ export default function ATSScoreGaugeEnhanced({
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-semibold text-gray-300">{item.category}</span>
-                      <span className="text-sm font-bold" style={{ color: catColor }}>
+                      <span className={`text-sm font-bold ${catColorClass}`}>
                         {Math.round(item.score)}%
                       </span>
                     </div>
                     <div className="w-full bg-gray-700/30 rounded-full h-2 overflow-hidden">
                       <motion.div
-                        className="h-full rounded-full"
-                        style={{ background: catColor }}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${item.score}%` }}
+                        className={`h-full rounded-full origin-left ${catBarClass}`}
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: Math.max(0, Math.min(1, item.score / 100)) }}
                         transition={{
                           delay: animationDelay + 0.8 + idx * 0.1,
                           duration: 0.8,

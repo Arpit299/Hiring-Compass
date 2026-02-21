@@ -56,6 +56,23 @@
   color: #d1d5db;
 }
 
+.tooltip-surface {
+  background-color: #1f2937;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.tooltip-border-emerald { border: 1px solid rgba(16, 185, 129, 0.25); }
+.tooltip-border-sky { border: 1px solid rgba(14, 165, 233, 0.25); }
+.tooltip-border-amber { border: 1px solid rgba(245, 158, 11, 0.25); }
+.tooltip-border-red { border: 1px solid rgba(239, 68, 68, 0.25); }
+
+.tooltip-text-emerald { color: #10b981; }
+.tooltip-text-sky { color: #0ea5e9; }
+.tooltip-text-amber { color: #f59e0b; }
+.tooltip-text-red { color: #ef4444; }
+
 /* Gauge metrics and styling */
 .gauge-metrics-grid {
   display: grid;
@@ -107,6 +124,14 @@
 
 .spinner {
   animation: spin 1s linear infinite;
+}
+
+.spinner-h-80 {
+  height: 80px;
+}
+
+.spinner-h-96 {
+  height: 96px;
 }
 
 @keyframes spin {
@@ -174,6 +199,23 @@
 .list-item-check {
   flex-shrink: 0;
 }
+
+.gauge-glow-emerald { background: #10b981; }
+.gauge-glow-sky { background: #0ea5e9; }
+.gauge-glow-amber { background: #f59e0b; }
+.gauge-glow-orange { background: #f97316; }
+.gauge-glow-red { background: #ef4444; }
+
+.gauge-text-emerald { color: #10b981; }
+.gauge-text-sky { color: #0ea5e9; }
+.gauge-text-amber { color: #f59e0b; }
+.gauge-text-orange { color: #f97316; }
+.gauge-text-red { color: #ef4444; }
+
+.bar-emerald { background: #10b981; }
+.bar-sky { background: #0ea5e9; }
+.bar-amber { background: #f59e0b; }
+.bar-red { background: #ef4444; }
 
 /* Improved visibility for focus states (accessibility) */
 button:focus-visible,

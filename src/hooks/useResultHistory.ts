@@ -4,7 +4,6 @@
  */
 
 import { useEffect, useState } from 'react';
-import loadExternalScript from '../utils/loadExternalScript';
 
 export interface HistoryItem {
   id: string;
@@ -194,30 +193,25 @@ export const useResultHistory = () => {
           </body>
         </html>`;
 
-      // Prefer loading html2pdf from a CDN at runtime to avoid bundling it into large chunks.
+      // Load from local dependency (prevents third-party script injection from remote CDNs).
       try {
-        const CDN_URL = 'https://unpkg.com/html2pdf.js@0.14.0/dist/html2pdf.bundle.min.js';
-        try {
-          await loadExternalScript(CDN_URL, 'html2pdf');
-          const container = document.createElement('div');
-          container.innerHTML = html;
-          document.body.appendChild(container);
-          // html2pdf exposes a factory function on window
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const html2pdfFn = (window as any).html2pdf as any;
-          if (typeof html2pdfFn !== 'function') {
-            throw new Error('html2pdf not available after script load');
-          }
-          await html2pdfFn().set({ filename: `hiring-compass-history-${Date.now()}.pdf` }).from(container).save();
-          document.body.removeChild(container);
-          console.log('[History] Exported history as PDF (via CDN)');
-          return true;
-        } catch (cdnErr) {
-          console.error('[History] html2pdf CDN load failed; PDF export aborted', cdnErr);
-          return false;
+        const html2pdfModule = await import('html2pdf.js');
+        const container = document.createElement('div');
+        container.innerHTML = html;
+        document.body.appendChild(container);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const html2pdfFn = ((html2pdfModule as any).default || html2pdfModule) as any;
+        if (typeof html2pdfFn !== 'function') {
+          throw new Error('html2pdf local module did not export a function');
         }
-      } catch (err) {
-        console.error('[History] Failed to export PDF:', err);
+
+        await html2pdfFn().set({ filename: `hiring-compass-history-${Date.now()}.pdf` }).from(container).save();
+        document.body.removeChild(container);
+        console.log('[History] Exported history as PDF (local package)');
+        return true;
+      } catch (pdfErr) {
+        console.error('[History] html2pdf local module failed; PDF export aborted', pdfErr);
         return false;
       }
     } catch (error) {
