@@ -87,20 +87,21 @@ export const StaggeredList = ({
   return (
     <ul className={`space-y-3 ${className}`}>
       {items.map((item, idx) => (
-        <motion.li
-          key={item.label}
-          className="flex items-start gap-3 text-sm text-gray-300"
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: false }}
-          transition={{ delay: idx * 0.1, duration: 0.5 }}
-        >
-          <span className="text-emerald-400 font-bold mt-1">✓</span>
-          <div>
-            <p className="font-medium">{item.label}</p>
-            {item.description && <p className="text-gray-500 mt-1">{item.description}</p>}
-          </div>
-        </motion.li>
+        <li key={item.label} className="list-none">
+          <motion.div
+            className="flex items-start gap-3 text-sm text-gray-300"
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: false }}
+            transition={{ delay: idx * 0.1, duration: 0.5 }}
+          >
+            <span className="text-emerald-400 font-bold mt-1">✓</span>
+            <div>
+              <p className="font-medium">{item.label}</p>
+              {item.description && <p className="text-gray-500 mt-1">{item.description}</p>}
+            </div>
+          </motion.div>
+        </li>
       ))}
     </ul>
   );

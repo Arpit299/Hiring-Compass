@@ -14,6 +14,27 @@
 const SERPAPI_API_KEY = process.env.SERPAPI_API_KEY;
 const ENABLE_MARKET_PULSE = process.env.ENABLE_MARKET_PULSE === 'true';
 
+async function fetchJsonWithTimeout(url, timeoutMs = 8000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      return { ok: false, status: response.status, data: null };
+    }
+    const data = await response.json();
+    return { ok: true, status: response.status, data };
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      return { ok: false, status: 408, data: null, timeout: true };
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /**
  * Fetch market demand data via SerpAPI (or fallback if unavailable)
  * Returns MarketPulse object or null on error
@@ -71,14 +92,14 @@ async function fetchJobMarketData(jobRole, company) {
     url.searchParams.append('location', 'United States');
 
     console.log(`[marketPulse] Fetching job market data for: "${searchQuery}"`);
-    const response = await fetch(url.toString(), { timeout: 8000 });
+    const response = await fetchJsonWithTimeout(url.toString(), 8000);
 
     if (!response.ok) {
       console.warn(`[marketPulse] SerpAPI job request returned status ${response.status}`);
       return { postingVolume: 0, topCompanies: [] };
     }
 
-    const data = await response.json();
+    const data = response.data || {};
 
     // Parse results conservatively
     const results = data.organic_results || [];
@@ -127,14 +148,14 @@ async function fetchSalaryData(jobRole) {
     url.searchParams.append('engine', 'google');
 
     console.log(`[marketPulse] Fetching salary data for: "${searchQuery}"`);
-    const response = await fetch(url.toString(), { timeout: 8000 });
+    const response = await fetchJsonWithTimeout(url.toString(), 8000);
     
     if (!response.ok) {
       console.warn(`[marketPulse] Salary data fetch returned status ${response.status}`);
       return null;
     }
 
-    const data = await response.json();
+    const data = response.data || {};
     const results = data.organic_results || [];
 
     // Extract salary ranges conservatively from snippets
@@ -179,14 +200,14 @@ async function fetchTrendingSkills(jobRole) {
     url.searchParams.append('engine', 'google');
 
     console.log(`[marketPulse] Fetching trending skills for: "${searchQuery}"`);
-    const response = await fetch(url.toString(), { timeout: 8000 });
+    const response = await fetchJsonWithTimeout(url.toString(), 8000);
     
     if (!response.ok) {
       console.warn(`[marketPulse] Trending skills fetch returned status ${response.status}`);
       return [];
     }
 
-    const data = await response.json();
+    const data = response.data || {};
     const results = data.organic_results || [];
 
     const skills = new Set();

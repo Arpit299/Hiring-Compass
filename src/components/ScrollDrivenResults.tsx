@@ -360,17 +360,18 @@ export default function ScrollDrivenResults({ result }: ScrollDrivenResultsProps
                   </div>
                   <ul className="space-y-2">
                     {result.keyStrengths.map((strength, idx) => (
-                      <motion.li
-                        key={strength}
-                        className="text-sm text-gray-300 flex items-start gap-2"
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: false }}
-                        transition={{ delay: 0.35 + idx * 0.1 }}
-                      >
-                        <span className="text-emerald-400 mt-1">✓</span>
-                        {strength}
-                      </motion.li>
+                      <li key={strength} className="list-none">
+                        <motion.div
+                          className="text-sm text-gray-300 flex items-start gap-2"
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: false }}
+                          transition={{ delay: 0.35 + idx * 0.1 }}
+                        >
+                          <span className="text-emerald-400 mt-1">✓</span>
+                          {strength}
+                        </motion.div>
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -382,17 +383,18 @@ export default function ScrollDrivenResults({ result }: ScrollDrivenResultsProps
                   </div>
                   <ul className="space-y-2">
                     {result.keyGaps.map((gap, idx) => (
-                      <motion.li
-                        key={gap}
-                        className="text-sm text-gray-300 flex items-start gap-2"
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: false }}
-                        transition={{ delay: 0.35 + idx * 0.1 }}
-                      >
-                        <span className="text-orange-400 mt-1">⚠</span>
-                        {gap}
-                      </motion.li>
+                      <li key={gap} className="list-none">
+                        <motion.div
+                          className="text-sm text-gray-300 flex items-start gap-2"
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: false }}
+                          transition={{ delay: 0.35 + idx * 0.1 }}
+                        >
+                          <span className="text-orange-400 mt-1">⚠</span>
+                          {gap}
+                        </motion.div>
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -560,12 +562,8 @@ export default function ScrollDrivenResults({ result }: ScrollDrivenResultsProps
                       <TrendingUp className="w-5 h-5 text-violet-400" />
                     </div>
 
-                    <motion.ul
+                    <ul
                       className="space-y-2 text-sm text-gray-300"
-                      initial={{ opacity: 0 }}
-                      whileInView={{ opacity: 1 }}
-                      viewport={{ once: false }}
-                      transition={{ delay: 0.35 + idx * 0.15 }}
                     >
                       {week.goals.map((goal) => (
                         <li key={goal} className="flex items-start gap-2 ml-4">
@@ -573,7 +571,7 @@ export default function ScrollDrivenResults({ result }: ScrollDrivenResultsProps
                           {goal}
                         </li>
                       ))}
-                    </motion.ul>
+                    </ul>
                   </motion.div>
                 ))}
               </div>

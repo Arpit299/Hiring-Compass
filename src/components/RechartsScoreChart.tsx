@@ -19,23 +19,29 @@ const colorFor = (v: number) => {
   return '#ef4444'; // red-500
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
+interface ScoreTooltipEntry {
+  value: number;
+  payload: { name: string };
+}
+
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: ScoreTooltipEntry[] }) => {
   if (!active || !payload || !payload.length) return null;
   const p = payload[0];
-  const bgColor = colorFor(p.value);
+  const toneClass =
+    p.value >= 80
+      ? 'tooltip-text-emerald tooltip-border-emerald'
+      : p.value >= 60
+        ? 'tooltip-text-sky tooltip-border-sky'
+        : p.value >= 40
+          ? 'tooltip-text-amber tooltip-border-amber'
+          : 'tooltip-text-red tooltip-border-red';
   return (
-    <div style={{
-      backgroundColor: '#1f2937',
-      border: `1px solid ${bgColor}40`,
-      borderRadius: '0.5rem',
-      padding: '0.5rem 0.75rem',
-      boxShadow: `0 4px 12px rgba(0,0,0,0.6)`,
-    }}>
-      <div style={{ fontSize: '0.875rem', fontWeight: '600', color: bgColor, marginBottom: '0.25rem' }}>
+    <div className={`tooltip-surface ${toneClass}`}>
+      <div className="tooltip-title">
         {p.payload.name}
       </div>
-      <div style={{ fontSize: '0.75rem', color: '#d1d5db' }}>
-        Score: <span style={{ fontWeight: '600', color: bgColor }}>{p.value}%</span>
+      <div className="tooltip-value-secondary">
+        Score: <span className="tooltip-value">{p.value}%</span>
       </div>
     </div>
   );
@@ -43,7 +49,11 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 const RechartsScoreChart: React.FC<Props> = ({ breakdown, compact = false }) => {
   if (!breakdown || breakdown.length === 0) return null;
-  const data = breakdown.slice(0, compact ? 3 : breakdown.length).map((b) => ({ name: b.category, score: Math.round(b.score) }));
+  const data = breakdown
+    .filter((b) => typeof b.category === 'string' && b.category.trim().length > 0 && Number.isFinite(b.score))
+    .slice(0, compact ? 3 : breakdown.length)
+    .map((b) => ({ name: b.category, score: Math.round(Number(b.score)) }));
+  if (data.length === 0) return null;
 
   return (
     <div className="chart-container-small">
