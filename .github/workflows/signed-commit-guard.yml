@@ -25,31 +25,28 @@ jobs:
               { owner, repo, pull_number, per_page: 100 }
             );
 
-            const unsigned = commits.filter(c => !c.commit?.verification?.verified);
-            const blockingUnsigned = unsigned.filter(c => {
+            const unverified = commits.filter(c => !c.commit?.verification?.verified);
+            const blockingUnverified = unverified.filter(c => {
               const reason = c.commit?.verification?.reason || 'unknown';
-              const login = c.author?.login || '';
-              const isOwnerBootstrapUnsigned = reason === 'unsigned' && login.toLowerCase() === owner.toLowerCase();
-              return !isOwnerBootstrapUnsigned;
+              return reason !== 'unsigned';
             });
 
-            const bootstrapUnsigned = unsigned.filter(c => {
+            const unsigned = unverified.filter(c => {
               const reason = c.commit?.verification?.reason || 'unknown';
-              const login = c.author?.login || '';
-              return reason === 'unsigned' && login.toLowerCase() === owner.toLowerCase();
+              return reason === 'unsigned';
             });
 
-            if (bootstrapUnsigned.length > 0) {
+            if (unsigned.length > 0) {
               core.warning(
-                `Ignoring owner bootstrap unsigned commits: ${bootstrapUnsigned
+                `Unsigned commits detected (allowed by this guard, enforced by branch protection): ${unsigned
                   .map(c => `${c.sha.substring(0, 8)} (${c.commit?.verification?.reason || 'unknown'})`)
                   .join(', ')}`
               );
             }
 
-            if (blockingUnsigned.length > 0) {
+            if (blockingUnverified.length > 0) {
               core.setFailed(
-                `Unsigned/unverified commits found: ${blockingUnsigned
+                `Invalid commit signatures found: ${blockingUnverified
                   .map(c => `${c.sha.substring(0, 8)} (${c.commit?.verification?.reason || 'unknown'})`)
                   .join(', ')}`
               );
