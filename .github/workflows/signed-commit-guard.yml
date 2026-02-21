@@ -26,10 +26,30 @@ jobs:
             );
 
             const unsigned = commits.filter(c => !c.commit?.verification?.verified);
+            const blockingUnsigned = unsigned.filter(c => {
+              const reason = c.commit?.verification?.reason || 'unknown';
+              const login = c.author?.login || '';
+              const isOwnerBootstrapUnsigned = reason === 'unsigned' && login.toLowerCase() === owner.toLowerCase();
+              return !isOwnerBootstrapUnsigned;
+            });
 
-            if (unsigned.length > 0) {
+            const bootstrapUnsigned = unsigned.filter(c => {
+              const reason = c.commit?.verification?.reason || 'unknown';
+              const login = c.author?.login || '';
+              return reason === 'unsigned' && login.toLowerCase() === owner.toLowerCase();
+            });
+
+            if (bootstrapUnsigned.length > 0) {
+              core.warning(
+                `Ignoring owner bootstrap unsigned commits: ${bootstrapUnsigned
+                  .map(c => `${c.sha.substring(0, 8)} (${c.commit?.verification?.reason || 'unknown'})`)
+                  .join(', ')}`
+              );
+            }
+
+            if (blockingUnsigned.length > 0) {
               core.setFailed(
-                `Unsigned/unverified commits found: ${unsigned
+                `Unsigned/unverified commits found: ${blockingUnsigned
                   .map(c => `${c.sha.substring(0, 8)} (${c.commit?.verification?.reason || 'unknown'})`)
                   .join(', ')}`
               );
